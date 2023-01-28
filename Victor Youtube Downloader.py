@@ -2,7 +2,7 @@ from tkinter import CENTER, ttk, Tk, StringVar, Entry, Button, Label
 from asyncio import AbstractEventLoop, get_event_loop
 from threading import Thread
 from yt_dlp import YoutubeDL
-from os import path
+from os import path, environ
 from re import compile, VERBOSE
 
 """ TO CONVERT TO EXE I USED THE auto-py-to-exe """
@@ -31,7 +31,7 @@ def progress_hook(d):
         download_progressbar['value'] = float(percent)
         download_txt.set(f'\n{percent}% \n {size_remaining} of {size} at {download_speed} \n\n Time remaining: {time_remaining} \n Time elapsed: {elapsed}')
     if d['status'] == 'finished':
-        download_txt.set('Finished. Your file is on your desktop in a folder')
+        download_txt.set('Finished. Your file is on your desktop in the "Downloaded Youtube Videos" folder')
 
 def _asyncio_thread(async_loop: AbstractEventLoop, url):
     async_loop.run_until_complete(download(url))
@@ -41,15 +41,17 @@ def do_task(async_loop: AbstractEventLoop, url):
     Thread(target=_asyncio_thread, args=(async_loop, url)).start()
 
 async def download(url):
-    user = path.expanduser('~')
+    desktop = path.join(path.join(environ['USERPROFILE']), 'Desktop')
+    
     ydl_opts = {
         'format': 'best/bestvideo+bestaudio',
-        'outtmpl': '{0}/Desktop/Downloaded Youtube Videos/%(title)s.%(ext)s'.format(user),
+        'outtmpl': '{0}/Downloaded Youtube Videos/%(title)s.%(ext)s'.format(desktop),
         'progress_hooks': [progress_hook],
     }
 
     with YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
+    
 
 if __name__ == '__main__':
     async_loop = get_event_loop()
